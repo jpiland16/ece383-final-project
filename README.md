@@ -9,9 +9,5 @@ cd ece383-final-project
 ./install.sh
 ```
 
-After doing this, you should be able to run the project by copying the shortcut
-to your desktop:
-```
-cp launch_ros_fp.desktop ~/Desktop
-```
-then going to your desktop and double-clicking the icon labeled "Launch ROS - FP".
+After doing this, you should be able to run the project by going to your desktop
+and double-clicking the icon labeled "Launch ROS - FP".
