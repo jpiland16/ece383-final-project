@@ -3,7 +3,7 @@ import os, sys
 print("STARTING FINAL PROJECT...")
 
 commands = [
-    "roslaunch ur_gazebo ur5e_bringup.launch",
+    "roslaunch ece383-final-project ur5e_bringup.launch",
     "sleep 10 ; roslaunch ur5e_moveit_config moveit_planning_execution.launch sim:=true"
 ]
 
