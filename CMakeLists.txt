@@ -10,6 +10,7 @@ project(ece383-final-project)
 find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
+  cv_bridge
 )
 
 ## System dependencies are found with CMake's conventions

@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
+    <xacro:macro name="ece383">
+        <!-- PLACE ALL WORLD MODIFICATIONS HERE -->
+        
+        <xacro:include filename="$(find ece383-final-project)/urdf/my_camera.xacro"/>
+        <xacro:my_camera />
+
+    </xacro:macro>
+</robot>

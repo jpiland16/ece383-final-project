@@ -86,4 +86,8 @@
     <child link="tool0_controller"/>
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </joint>
+
+  <!-- INCLUDE modifications for the final project -->
+  <xacro:include filename="$(find ece383-final-project)/urdf/modifications.xacro"/>
+  <xacro:ece383/>
 </robot>
