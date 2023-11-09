@@ -24,7 +24,7 @@ def callback(msg: Image):
 
     # print(msg.height, msg.width)
     print("Image saved at", now)
-    image = bridge.imgmsg_to_cv2(msg, "bgr8")
+    image = bridge.imgmsg_to_cv2(msg, "rgb8")
     plt.imshow(image)
     plt.savefig(f"test.png")
 
