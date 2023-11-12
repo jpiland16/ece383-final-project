@@ -35,3 +35,23 @@ following template:
     </xacro:macro>
 </robot>
 ```
+
+This repo includes a demonstration Python script to test out features of the
+robot. Some examples are shown below. To start, run:
+```sh
+python3
+```
+from the terminal. Then, at the following Python (`>>>`) prompts:
+```py
+import demo_ee
+robot = demo_ee.MovableRobot()
+
+# Change one or more parameters about the robot's EE position
+robot.go(x = 0.5)
+robot.go(qx = 0, qy = 0, qz = 0, qw = 1)
+
+# Change the EE position
+ee = robot.instance.ee_group
+ee.go([-0.5])
+```
+There are still some issues with the EE motion as of commit `e3fa17bb`.
