@@ -34,10 +34,10 @@
   <xacro:include filename="$(find ur_gazebo)/urdf/ur_macro.xacro"/>
 
   <!--Declare arguments -->
-  <xacro:arg name="joint_limit_params" default=""/>
-  <xacro:arg name="physical_params" default=""/>
-  <xacro:arg name="kinematics_params" default=""/>
-  <xacro:arg name="visual_params" default=""/>
+  <xacro:arg name="joint_limit_params" default="$(find ur_description)/config/ur5e/joint_limits.yaml"/>
+  <xacro:arg name="physical_params" default="$(find ur_description)/config/ur5e/physical_parameters.yaml"/>
+  <xacro:arg name="kinematics_params" default="$(find ur_description)/config/ur5e/default_kinematics.yaml"/>
+  <xacro:arg name="visual_params" default="$(find ur_description)/config/ur5e/visual_parameters.yaml"/>
   <!--
     legal values:
       - hardware_interface/PositionJointInterface
@@ -87,7 +87,43 @@
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </joint>
 
+
+  <!-- gripper -->
+
+  
+  <!-- <xacro:include filename="$(find icl_ur5_setup_description)/urdf/robotiq_arg2f_140_model_macro.xacro" />
+  <xacro:robotiq_arg2f_140 prefix=""/>
+  <joint name="ur5_ee_link_gripper_base" type="fixed">
+    <parent link= "tool0" />
+    <child link = "robotiq_arg2f_base_link" />
+    <origin xyz=" 0.0 0.0 0.0" rpy="0.0 0.0 ${pi/2}" />
+  </joint> -->
+
+  <!-- <link name="${prefix}tool" />
+  <joint name="tool_tip" type="fixed">
+    <parent link= "${prefix}ee_link" />
+    <child link = "${prefix}tool" />
+    <origin xyz=" 0.00 0.0 0.2" rpy="0.0 0.0 0.0" />
+  </joint> -->
+
+  <!-- NOTES HERE: seems you can also attach to tool0 with RPY. If using flange, need P = pi/2-->
+  <!-- <xacro:include filename="$(find robotiq_2f_140_gripper_visualization)/urdf/robotiq_arg2f_140_model_macro.xacro"/>
+  <xacro:robotiq_arg2f_140 prefix="" />
+  <joint name="ee_joint" type="fixed">
+    <parent link="flange" />
+    <child link="robotiq_arg2f_base_link" />
+    <origin xyz="0 0 0" rpy="0 ${pi/2} 0"/>
+  </joint> -->
+  
+  <xacro:include filename="$(find ece383-final-project)/urdf/robotiq_arg2f_140_model_macro.xacro"/>
+  <xacro:robotiq_arg2f_140 prefix="" />
+  <joint name="ee_joint" type="fixed">
+    <parent link="tool0" />
+    <child link="robotiq_arg2f_base_link" />
+  </joint>
+
   <!-- INCLUDE modifications for the final project -->
   <xacro:include filename="$(find ece383-final-project)/urdf/modifications.xacro"/>
   <xacro:ece383/>
+  
 </robot>

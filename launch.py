@@ -4,7 +4,7 @@ print("STARTING FINAL PROJECT...")
 
 commands = [
     "roslaunch ece383-final-project ur5e_bringup.launch",
-    "sleep 10 ; roslaunch ur5e_moveit_config moveit_planning_execution.launch sim:=true"
+    "sleep 10 ; roslaunch ece383-final-project moveit_planning_execution.launch sim:=true"
 ]
 
 if len(sys.argv) == 1:
