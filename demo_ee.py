@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Software License Agreement (BSD License)
 #
@@ -347,5 +347,7 @@ class MovableRobot():
             print("Move successful!")
 
 def test():
-    return MovableRobot().instance.ee_group
+    ee = MovableRobot().instance.ee_group
+    ee.go([0.5])
 
+test()

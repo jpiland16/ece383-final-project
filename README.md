@@ -54,4 +54,3 @@ robot.go(qx = 0, qy = 0, qz = 0, qw = 1)
 ee = robot.instance.ee_group
 ee.go([-0.5])
 ```
-There are still some issues with the EE motion as of commit `e3fa17bb`.
