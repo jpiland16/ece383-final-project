@@ -52,5 +52,6 @@ robot.go(qx = 0, qy = 0, qz = 0, qw = 1)
 
 # Change the EE position
 ee = robot.instance.ee_group
-ee.go([-0.5])
+ee.go([0.5])
 ```
+The EE position should only be set to values between 0 and 0.7.

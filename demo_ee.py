@@ -349,5 +349,3 @@ class MovableRobot():
 def test():
     ee = MovableRobot().instance.ee_group
     ee.go([0.5])
-
-test()
