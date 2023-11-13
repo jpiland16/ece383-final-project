@@ -1,0 +1,1 @@
+roslaunch ur5_moveit_config moveit_planning_execution.launch sim:=true
