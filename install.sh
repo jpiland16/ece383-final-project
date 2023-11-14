@@ -1,12 +1,13 @@
 #!/usr/bin/sh
 echo Configuring final project package...
 echo ====================================
-cd $HOME/catkin_ws
+cd $HOME/catkin_ws/src
 # install roboticsgroup gazebo plugins (needed for MimicJoint)
 if [ ! -d /path/to/directory ]; then
   # directory does NOT exist - need to clone the repo from GitHub
   git clone https://github.com/roboticsgroup/roboticsgroup_gazebo_plugins
 fi
+cd $HOME/catkin_ws
 rosdep update
 rosdep install --from-paths src --ignore-src -r -y
 catkin_make
