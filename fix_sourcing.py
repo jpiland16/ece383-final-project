@@ -10,5 +10,5 @@ with open(bash_rc_file, "a+") as file:
         print("Your .bashrc looks OK! Exiting...")
     else:
         print("Adding `source ~/catkin_ws/devel/setup.bash` to your .bashrc ...")
-        print("source ~/catkin_ws/devel/setup.bash\n", file=file)
+        print("\nsource ~/catkin_ws/devel/setup.bash\n", file=file)
 
