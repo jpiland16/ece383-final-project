@@ -6,5 +6,8 @@
         <xacro:include filename="$(find ece383-final-project)/urdf/my_camera.xacro"/>
         <xacro:my_camera />
 
+        <xacro:include filename="$(find ece383-final-project)/urdf/board.xacro"/>
+        <xacro:connect4_board />
+
     </xacro:macro>
 </robot>
