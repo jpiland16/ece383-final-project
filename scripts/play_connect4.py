@@ -120,38 +120,45 @@ class MoveGroupPlayGame(object):
         return 
 
 
+# does not use CV; takes user's input move to update the board state
 def main():
+    currState = "4"
+    finished = False
+    game = MoveGroupPlayGame() #create an instance of a Drawing 
+
     try:
-        input(
-            "Press `Enter` to begin setup"
-        )
-        print("Begin playing")
-        game = MoveGroupPlayGame() #create an instance of a Drawing 
-        
+        # while loop continues until either the user or robot wins
+        while finished is False:
+            print("The robot is red; you are yellow!")
+            column = input(
+                "Make your move by entering the column where you want to drop the chip!\n"
+            )
+            currState += column
+            print(currState)
 
-        input(
-            "Press `Enter` to pick up chip"
-        )  
-        game.go_to_joint_state(beginning_frame)
-        game.go_to_joint_state(lean_forward)
-        game.go_to_joint_state(pick_up)
-        game.go_to_joint_state(lean_forward)
+            # input(
+            #     "Press `Enter` to pick up chip"
+            # )  
+            # game.go_to_joint_state(beginning_frame)
+            # game.go_to_joint_state(lean_forward)
+            # game.go_to_joint_state(pick_up)
+            # game.go_to_joint_state(lean_forward)
 
-        input(
-            "Press `Enter` to align above center of board"
-        )  
+            # input(
+            #     "Press `Enter` to align above center of board"
+            # )  
 
-        game.go_to_joint_state(orient_above_board)
+            # game.go_to_joint_state(orient_above_board)
 
-        input(
-            "Press `Enter` to align above far left column of board"
-        )  
+            # input(
+            #     "Press `Enter` to align above far left column of board"
+            # )  
 
-        game.go_to_joint_state(orient_far_left_above)
-        game.go_to_joint_state(orient_far_left_extend)
+            # game.go_to_joint_state(orient_far_left_above)
+            # game.go_to_joint_state(orient_far_left_extend)
 
 
-        print("Hooray! ;)")
+            print("Hooray! ;\)")
 
 
     except rospy.ROSInterruptException:
