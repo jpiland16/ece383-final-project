@@ -8,6 +8,7 @@ import moveit_commander
 import moveit_msgs.msg
 import geometry_msgs.msg
 import numpy as np
+import requests
 
 try:
     from math import pi, tau, dist, fabs, cos
@@ -124,7 +125,7 @@ class MoveGroupPlayGame(object):
 def main():
     currState = "4"
     finished = False
-    game = MoveGroupPlayGame() #create an instance of a Drawing 
+    game = MoveGroupPlayGame() #create an instance of a Drawing
 
     try:
         # while loop continues until either the user or robot wins
@@ -135,6 +136,10 @@ def main():
             )
             currState += column
             print(currState)
+
+            solver = "https://connect4.gamesolver.org/solve"
+            params = {"pos": currState,}
+            result = requests.get(solver, params=params).text
 
             # input(
             #     "Press `Enter` to pick up chip"
