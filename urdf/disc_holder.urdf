@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<robot>
+
+    <!-- joint -->
+    <!-- <joint name="holder_joint" type="fixed">
+        <axis xyz="1 0 0" />
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <parent link="world"/>
+        <child link="single_disc_holder_link"/>
+    </joint> -->
+
+    <!-- holder -->
+    <link name="single_disc_holder_link">
+        <visual>
+            <origin xyz="0 0 0" rpy="1.57 0 0" />
+            <geometry>
+                <mesh filename="package://ece383-final-project/meshes/visual/single_disc_holder.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+            <material name="">
+                <color rgba="0 0 1 1" />
+            </material>
+        </visual>
+
+        <collision>
+            <origin xyz="0 0 0" rpy="1.57 0 0" />
+            <geometry>
+                <mesh filename="package://ece383-final-project/meshes/visual/single_disc_holder.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+        </collision>
+
+        <inertial>
+            <mass value="1" />
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <inertia ixx="1e-1" ixy="0" ixz="0" iyy="1e-1" iyz="0" izz="1e-1" />
+        </inertial>
+    </link>
+
+    <gazebo reference="single_disc_holder_link">
+        <material>Gazebo/Blue</material>
+    </gazebo>
+</robot>
