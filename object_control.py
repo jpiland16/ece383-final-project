@@ -102,20 +102,22 @@ def set_up_staged_tokens(oc: ObjectController):
             y = 0.0 + 0.05 * j
             oc.spawn_holder_at_location(x, y)
             oc.spawn_token_at_location(TokenColor.RED, x, y + 0.007, 0.05)
+            return
 
 def drop_token_in_column(oc: ObjectController, color: TokenColor, column: int):
     if (not (1 <= column <= 7)) or (int(column) != column):
         raise ValueError(f"Invalid column id: {column}")
     
     # x_pos = [0.518, 0.551, 0.585, 0.620, 0.655, 0.690, 0.725][column - 1]
-    x_pos = 0.518 + 0.0345 * (column - 1)
+    x_pos = 0.268 + 0.0345 * (column - 1)
 
-    oc.spawn_token_at_location(color, x_pos, -0.548, 0.5)
+    oc.spawn_token_at_location(color, x_pos, -0.298, 0.5)
 
 def main():
     oc = ObjectController()
     oc.delete_all_free_models()
     set_up_staged_tokens(oc)
+    return
     drop_token_in_column(oc, TokenColor.RED, 1)
     drop_token_in_column(oc, TokenColor.YELLOW, 2)
     drop_token_in_column(oc, TokenColor.RED, 3)
@@ -123,6 +125,7 @@ def main():
     drop_token_in_column(oc, TokenColor.RED, 5)
     drop_token_in_column(oc, TokenColor.YELLOW, 6)
     drop_token_in_column(oc, TokenColor.RED, 7)
+    return
     counter = 1
     players = [TokenColor.RED, TokenColor.YELLOW]
     while True:

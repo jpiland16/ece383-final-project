@@ -9,6 +9,16 @@ if [ ! -d roboticsgroup_gazebo_plugins ]; then
 else
   echo You already have the \`roboticsgroup_gazebo_plugins\` package installed.
 fi
+if [ ! -d gazebo-pkgs ]; then
+  # directory does NOT exist - need to clone the repo from GitHub
+  git clone https://github.com/JenniferBuehler/gazebo-pkgs
+  cd gazebo-pkgs
+  rm -rf gazebo_state_plugins # dependency not found, and we don't need it
+  rm -rf gazebo_test_tools    # dependency not found, and we don't need it
+  cd ..
+else
+  echo You already have the \`gazebo-pkgs\` package installed.
+fi
 cd $HOME/catkin_ws
 rosdep update
 rosdep install --from-paths src --ignore-src -r -y
