@@ -1,8 +1,9 @@
 #!/usr/bin/python3
 
 import rospy
-from gazebo_msgs.srv import GetWorldProperties, SpawnModel, DeleteModel
-from geometry_msgs.msg import Pose, Point, Quaternion
+from gazebo_msgs.srv import GetWorldProperties, SpawnModel, DeleteModel, GetModelState, SetModelState, GetModelStateResponse
+from gazebo_msgs.msg import ModelState
+from geometry_msgs.msg import Pose, Point, Quaternion, Twist
 
 from enum import Enum
 import re
@@ -18,11 +19,41 @@ class ObjectController:
 
     def __init__(self) -> None:
         self._get_properties = rospy.ServiceProxy("/gazebo/get_world_properties", GetWorldProperties)
+        self._get_model_state = rospy.ServiceProxy("/gazebo/get_model_state", GetModelState)
+        self._set_model_state = rospy.ServiceProxy("/gazebo/set_model_state", SetModelState)
         self._spawn_model = rospy.ServiceProxy("/gazebo/spawn_urdf_model", SpawnModel)
         self._delete_model = rospy.ServiceProxy("/gazebo/delete_model", DeleteModel)
     
     def delete_model_by_name(self, name: str):
         return self._delete_model(model_name=name)
+    
+    def get_model_state(self, model_name: str) -> GetModelStateResponse:
+        return self._get_model_state(model_name, "")
+    
+    def edit_model_state(self, model_name: str, x: float = None, y: float = None, z: float = None, qx: float = None, qy: float = None, qz: float = None, qw: float = None):
+
+        if None in [x, y, z, qx, qy, qz, qw]:
+            old_state = self.get_model_state(model_name)
+
+        if x is None:
+            x = old_state.pose.position.x
+        if y is None:
+            y = old_state.pose.position.y
+        if z is None:
+            z = old_state.pose.position.z
+        if qx is None:
+            qx = old_state.pose.orientation.x
+        if qy is None:
+            qy = old_state.pose.orientation.y
+        if qz is None:
+            qz = old_state.pose.orientation.z
+        if qw is None:
+            qw = old_state.pose.orientation.w
+
+        pos = Point(x, y, z)
+        ori = Quaternion(qx, qy, qz, qw)
+        state = ModelState(model_name, Pose(pos, ori), Twist(), "")
+        return self._set_model_state(state)
     
     def delete_all_free_models(self):
         """
@@ -100,8 +131,8 @@ def set_up_staged_tokens(oc: ObjectController):
         for j in range(3): # y index
             x = 0.6 + 0.05 * i
             y = 0.0 + 0.05 * j
-            oc.spawn_holder_at_location(x, y)
-            oc.spawn_token_at_location(TokenColor.RED, x, y + 0.007, 0.05)
+            # oc.spawn_holder_at_location(x, y)
+            oc.spawn_token_at_location(TokenColor.RED, x, y + 0.007, 0.10)
             return
 
 def drop_token_in_column(oc: ObjectController, color: TokenColor, column: int):
@@ -113,10 +144,16 @@ def drop_token_in_column(oc: ObjectController, color: TokenColor, column: int):
 
     oc.spawn_token_at_location(color, x_pos, -0.298, 0.5)
 
-def main():
+def oj_setup():
     oc = ObjectController()
     oc.delete_all_free_models()
     set_up_staged_tokens(oc)
+    return oc
+
+def main():
+    oc = ObjectController()
+    oc.edit_model_state("token0", z = 0.5)
+    # oc = oj_setup()
     return
     drop_token_in_column(oc, TokenColor.RED, 1)
     drop_token_in_column(oc, TokenColor.YELLOW, 2)

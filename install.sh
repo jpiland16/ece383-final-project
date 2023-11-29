@@ -9,6 +9,12 @@ if [ ! -d roboticsgroup_gazebo_plugins ]; then
 else
   echo You already have the \`roboticsgroup_gazebo_plugins\` package installed.
 fi
+if [ ! -d gazebo_ros_link_attacher ]; then
+  # directory does NOT exist - need to clone the repo from GitHub
+  git clone https://github.com/pal-robotics/gazebo_ros_link_attacher
+else
+  echo You already have the \`gazebo_ros_link_attacher\` package installed.
+fi
 if [ ! -d gazebo-pkgs ]; then
   # directory does NOT exist - need to clone the repo from GitHub
   git clone https://github.com/JenniferBuehler/gazebo-pkgs

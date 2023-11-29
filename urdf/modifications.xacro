@@ -9,5 +9,8 @@
         <xacro:include filename="$(find ece383-final-project)/urdf/board.xacro"/>
         <xacro:connect4_board />
 
+        <xacro:include filename="$(find ece383-final-project)/urdf/disc_holder.xacro"/>
+        <xacro:disc_holder x="0.6"/>
+
     </xacro:macro>
 </robot>
