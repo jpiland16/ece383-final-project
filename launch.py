@@ -9,8 +9,10 @@ commands = [
     "sleep 10 ; roslaunch ece383-final-project moveit_planning_execution.launch sim:=true"
 ]
 
+run_count = 0
 while check_ros_running():
-    print("ROS is still running! Waiting for it to close...")
+    run_count += 1
+    print(f"ROS is still running! Waiting for it to close... ({run_count})")
     time.sleep(1)
 
 if len(sys.argv) == 1:
