@@ -132,7 +132,7 @@ def run_program(robot: MovableRobot):
     attach_detach_helper.attach_token(token_name)
     print("Token attached!")
 
-    Z_TARGET = 0.5
+    Z_TARGET = 0.53
     def lift_token():
         robot.go(z = Z_TARGET)
     def lift_token_check():
@@ -142,70 +142,78 @@ def run_program(robot: MovableRobot):
 
     
     # position check
-    def move_with_check():
+    def align_token(x_target, y_target):
+        
+        def token_is_in_place():
+            pose = object_controller.get_model_state(token_name).pose
+            position = pose.position
+            orientation = pose.orientation
+            return (
+                abs(position.x - x_target) < 0.0006 and
+                abs(position.y - y_target) < 0.0006 and
+                abs(orientation.x - np.sqrt(2)/2) < 0.006 and
+                abs(orientation.y -            0) < 0.006 and
+                abs(orientation.z -            0) < 0.006 and
+                abs(orientation.w - np.sqrt(2)/2) < 0.006
+            )
+        
+        counter = 0
+        
+        while not token_is_in_place():
+            counter += 1
+            
+            print(f"Token is not aligned to target. Moving... ({counter})")
 
-        robot_pose = object_controller.get_robot_ee_pose()
-        robot_position = robot_pose.position
-        robot_orientation = robot_pose.orientation
-        token_pose = object_controller.get_model_state(token_name).pose
-        token_position = token_pose.position
-        token_orientation = token_pose.orientation
+            if False:
+                token_pose = object_controller.get_model_state(token_name).pose
+                print("Pose of token was: ")
+                print(token_pose)
+                input("Press ENTER to continue...")
+            
+            token_orientation = object_controller.get_model_state(token_name).pose.orientation
+            ee_orientation = object_controller.get_robot_ee_pose().orientation
 
-        token_tilt = multiply_quaternions(
-            invert_quaternion(Quaternion(np.sqrt(2)/2, 0, 0, np.sqrt(2)/2)),
-            token_orientation
-        )
 
-        print("Token tilt:")
-        print(token_tilt)
+            transform_ee_to_token = multiply_quaternions(
+                invert_quaternion(ee_orientation),
+                token_orientation
+            )
 
-        robot_target_tilt = multiply_quaternions(robot_orientation, token_tilt)
-        rtt = robot_target_tilt
+            target_token_orientation = Quaternion(np.sqrt(2)/2, 0, 0, np.sqrt(2)/2)
 
-        print("Target tilt: ")
-        print(rtt)
-        # input()
-        robot.go(qx = rtt.x, qy = rtt.y, qz = rtt.z, qw = rtt.w)
-        print("Done tilting.")
+            robot_target_tilt = multiply_quaternions(
+                target_token_orientation,
+                invert_quaternion(transform_ee_to_token)
+            )
 
-        robot_pose = object_controller.get_robot_ee_pose()
-        robot_position = robot_pose.position
-        token_pose = object_controller.get_model_state(token_name).pose
-        token_position = token_pose.position
+            robot.go(
+                qx = robot_target_tilt.x, 
+                qy = robot_target_tilt.y, 
+                qz = robot_target_tilt.z, 
+                qw = robot_target_tilt.w
+            )
 
-        # X_TARGET =  0.284  + (robot_position.x - token_position.x)
-        X_TARGET =  0.3185 + (robot_position.x - token_position.x)
-        Y_TARGET = -0.2965 + (robot_position.y - token_position.y)
-        Z_TARGET =  0.6
+            token_position = object_controller.get_model_state(token_name).pose.position
+            robot_position = object_controller.get_robot_ee_pose().position
 
-        def move_to_board():
-            robot.go(x = X_TARGET, y = Y_TARGET, z = Z_TARGET)
-        def move_to_board_check():
-            current_pose: Pose = move_group.get_current_pose().pose
-            return (abs(current_pose.position.x - X_TARGET) < 0.003
-            and abs(current_pose.position.y - Y_TARGET) < 0.003
-            and abs(current_pose.position.z - Z_TARGET) < 0.003)
-        move_robot_with_verification(move_group, move_to_board, move_to_board_check)
+            robot.go(
+                x = x_target + (robot_position.x - token_position.x),
+                y = y_target + (robot_position.y - token_position.y)
+            )
 
-    move_with_check()
-    print("Settling...")
-    time.sleep(2) # settling
-    move_with_check()
-    print("Settling a second time...")
-    time.sleep(2) # settling twice
-    move_with_check()
+            time.sleep(2)
 
-    if True:
-        ok = input("Type OK (capitalized) to drop token: ")
+    align_token(0.284, -0.298)
+    robot.go(z = 0.52)
+    align_token(0.284, -0.298)
 
-        if ok != "OK":
-            return
-    else:
-        time.sleep(2)
+    print("Ready to drop token! Its current pose is")
+    print(object_controller.get_model_state(token_name).pose)
 
     attach_detach_helper.detach_token(token_name)
-    time.sleep(0.5)
+    time.sleep(2)
     ee.go([0.5])
+    robot.go(z = 0.6)
 
     input("Press ENTER when token has fallen")
     attach_detach_helper.link_board_to_token(token_name)
