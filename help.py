@@ -8,3 +8,5 @@ mg = robot.instance.move_group
 
 adh = AttachDetachHelper()
 oc = ObjectController()
+
+from token_place_demo import *

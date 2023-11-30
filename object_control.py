@@ -4,12 +4,22 @@ import rospy
 from gazebo_msgs.srv import GetWorldProperties, SpawnModel, DeleteModel, GetModelState, SetModelState, GetModelStateResponse
 from gazebo_msgs.msg import ModelState
 from geometry_msgs.msg import Pose, Point, Quaternion, Twist
+from sensor_msgs.msg import JointState
+from forward_kinematics import get_ee_pos
+
+import tf.transformations as tr
+import numpy as np
 
 from enum import Enum
 import re
 
 TOKEN_RE = re.compile(r"token\d+")
 HOLDER_RE = re.compile(r"holder\d+")
+
+class JointStatesNotAvailableError(ValueError):
+    pass
+class JointStatesWrongLengthError(ValueError):
+    pass
 
 class TokenColor(str, Enum):
     RED = "red"
@@ -23,10 +33,40 @@ class ObjectController:
         self._set_model_state = rospy.ServiceProxy("/gazebo/set_model_state", SetModelState)
         self._spawn_model = rospy.ServiceProxy("/gazebo/spawn_urdf_model", SpawnModel)
         self._delete_model = rospy.ServiceProxy("/gazebo/delete_model", DeleteModel)
+        self._joint_states = None
+        rospy.Subscriber("/joint_states", JointState, self._joint_state_callback)
     
     def delete_model_by_name(self, name: str):
         return self._delete_model(model_name=name)
     
+    def get_robot_ee_pose(self):
+        if self._joint_states is None:
+            raise JointStatesNotAvailableError("Joint states not yet available!")
+        if len(self._joint_states) != 7:
+            raise JointStatesWrongLengthError(
+                f"Expected 7 joint values, got {len(self._joint_states)}")
+        
+        position = self._joint_states[:] # shallow copy
+
+        position = [position[0]] + position[2:] # drop finger joint (index 1)
+
+        modified_pos = position[:] # independent copy
+        modified_pos[0] = position[2] # two joints are backwards
+        modified_pos[0] += np.pi
+        modified_pos[2] = position[0]
+
+        A = get_ee_pos(modified_pos) # transformation to EE
+        x = A[0][3]
+        y = A[1][3]
+        z = A[2][3]
+
+        position = Point(x, y, z)
+        orientation: Quaternion = Quaternion(*(tr.quaternion_from_matrix(A) * -1))
+        return Pose(position, orientation)
+        
+    def _joint_state_callback(self, msg: JointState):
+        self._joint_states = list(msg.position)
+
     def get_model_state(self, model_name: str) -> GetModelStateResponse:
         return self._get_model_state(model_name, "")
     
@@ -132,7 +172,7 @@ def set_up_staged_tokens(oc: ObjectController):
             x = 0.6 + 0.05 * i
             y = 0.0 + 0.05 * j
             # oc.spawn_holder_at_location(x, y)
-            oc.spawn_token_at_location(TokenColor.RED, x, y + 0.007, 0.10)
+            oc.spawn_token_at_location(TokenColor.RED, x + 0.016, y + 0.007, 0.10)
             return
 
 def drop_token_in_column(oc: ObjectController, color: TokenColor, column: int):

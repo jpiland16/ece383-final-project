@@ -8,7 +8,9 @@ import rospy
 from gazebo_msgs.srv import SetModelConfiguration, SetModelConfigurationRequest
 from std_srvs.srv import Empty
 
-from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Pose, Quaternion
+import tf.transformations as tr
+import numpy as np
 
 def robot_has_moved(old_joint_values: List[float], now_joint_values: List[float], tolerance: float = 0.25):
     for a, b in zip(old_joint_values, now_joint_values):
@@ -74,8 +76,6 @@ def main():
 
     # stabilize_initial_state()
 
-    attach_detach_helper = AttachDetachHelper()
-    object_controller = ObjectController()
 
     while True:
         try:
@@ -83,6 +83,22 @@ def main():
             break
         except RuntimeError:
             print("Retrying connection...")
+
+    run_program(robot)
+
+def invert_quaternion(q: Quaternion):
+    return Quaternion(*tr.quaternion_inverse([q.x, q.y, q.z, q.w]))
+
+def multiply_quaternions(q1: Quaternion, q2: Quaternion):
+    return Quaternion(*tr.quaternion_multiply(
+        [q1.x, q1.y, q1.z, q1.w],
+        [q2.x, q2.y, q2.z, q2.w],
+    ))
+
+def run_program(robot: MovableRobot):
+
+    attach_detach_helper = AttachDetachHelper()
+    object_controller = ObjectController()
 
     move_group = robot.instance.move_group
     ee = robot.instance.ee_group
@@ -124,23 +140,71 @@ def main():
         return abs(current_pose.position.z - Z_TARGET) < 0.02
     move_robot_with_verification(move_group, lift_token, lift_token_check)
 
-    X_TARGET = 0.29
-    Y_TARGET = -0.302
-    Z_TARGET = 0.6
-    def move_to_board():
-        robot.go(x = X_TARGET, y = Y_TARGET, z = Z_TARGET)
-    def move_to_board_check():
-        current_pose: Pose = move_group.get_current_pose().pose
-        return (abs(current_pose.position.x - X_TARGET) < 0.02
-        and abs(current_pose.position.y - Y_TARGET) < 0.02
-        and abs(current_pose.position.z - Z_TARGET) < 0.02)
-    move_robot_with_verification(move_group, move_to_board, move_to_board_check)
+    
+    # position check
+    def move_with_check():
 
-    # print("Settling...")
-    # time.sleep(10) # to allow robot to settle
-    # move_robot_with_verification(move_group, move_to_board, move_to_board_check)
+        robot_pose = object_controller.get_robot_ee_pose()
+        robot_position = robot_pose.position
+        robot_orientation = robot_pose.orientation
+        token_pose = object_controller.get_model_state(token_name).pose
+        token_position = token_pose.position
+        token_orientation = token_pose.orientation
+
+        token_tilt = multiply_quaternions(
+            invert_quaternion(Quaternion(np.sqrt(2)/2, 0, 0, np.sqrt(2)/2)),
+            token_orientation
+        )
+
+        print("Token tilt:")
+        print(token_tilt)
+
+        robot_target_tilt = multiply_quaternions(robot_orientation, token_tilt)
+        rtt = robot_target_tilt
+
+        print("Target tilt: ")
+        print(rtt)
+        # input()
+        robot.go(qx = rtt.x, qy = rtt.y, qz = rtt.z, qw = rtt.w)
+        print("Done tilting.")
+
+        robot_pose = object_controller.get_robot_ee_pose()
+        robot_position = robot_pose.position
+        token_pose = object_controller.get_model_state(token_name).pose
+        token_position = token_pose.position
+
+        # X_TARGET =  0.284  + (robot_position.x - token_position.x)
+        X_TARGET =  0.3185 + (robot_position.x - token_position.x)
+        Y_TARGET = -0.2965 + (robot_position.y - token_position.y)
+        Z_TARGET =  0.6
+
+        def move_to_board():
+            robot.go(x = X_TARGET, y = Y_TARGET, z = Z_TARGET)
+        def move_to_board_check():
+            current_pose: Pose = move_group.get_current_pose().pose
+            return (abs(current_pose.position.x - X_TARGET) < 0.003
+            and abs(current_pose.position.y - Y_TARGET) < 0.003
+            and abs(current_pose.position.z - Z_TARGET) < 0.003)
+        move_robot_with_verification(move_group, move_to_board, move_to_board_check)
+
+    move_with_check()
+    print("Settling...")
+    time.sleep(2) # settling
+    move_with_check()
+    print("Settling a second time...")
+    time.sleep(2) # settling twice
+    move_with_check()
+
+    if True:
+        ok = input("Type OK (capitalized) to drop token: ")
+
+        if ok != "OK":
+            return
+    else:
+        time.sleep(2)
 
     attach_detach_helper.detach_token(token_name)
+    time.sleep(0.5)
     ee.go([0.5])
 
     input("Press ENTER when token has fallen")
