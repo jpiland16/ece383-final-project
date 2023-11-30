@@ -29,7 +29,7 @@ def move_with_verification(move_fn: Callable[[], None], motion_check_function: C
             break
 
         # else, not close
-        if counter % (CONUTER_FREQUENCY * MOTION_CHECK_FREQUENCY) == 0 and not motion_check_function():
+        if counter % (CONUTER_FREQUENCY * MOTION_CHECK_FREQUENCY) == 0: # and not motion_check_function():
             reissue_count += 1
             print(f"Robot appears to have ignored command. Re-issuing... ({reissue_count})")
             move_fn()
@@ -44,8 +44,12 @@ def move_robot_with_verification(move_group, move_fn: Callable[[], None], final_
     # robot as opposed to end-effector    
     starting_joint_values = move_group.get_current_joint_values()
     def check_motion():
+        nonlocal starting_joint_values
         current_joint_values = move_group.get_current_joint_values()
-        return robot_has_moved(starting_joint_values, current_joint_values)
+        has_moved = robot_has_moved(starting_joint_values, current_joint_values)
+        # if has_moved:
+        #     starting_joint_values = move_group.get_current_joint_values()
+        return has_moved
     move_with_verification(move_fn, check_motion, final_check_function)
 
 def stabilize_initial_state():
@@ -98,7 +102,7 @@ def main():
 
 
     # object_controller.delete_all_free_models()
-    token_name, res = object_controller.spawn_token_at_location(TokenColor.RED, 0.6, 0.007, 0.1)
+    token_name, res = object_controller.spawn_token_at_location(TokenColor.RED, 0.616, 0.007, 0.08)
 
     print("Spawned token!")
 
@@ -120,7 +124,21 @@ def main():
         return abs(current_pose.position.z - Z_TARGET) < 0.02
     move_robot_with_verification(move_group, lift_token, lift_token_check)
 
-    robot.go(x = 0.29, y = -0.302, z = 0.6)
+    X_TARGET = 0.29
+    Y_TARGET = -0.302
+    Z_TARGET = 0.6
+    def move_to_board():
+        robot.go(x = X_TARGET, y = Y_TARGET, z = Z_TARGET)
+    def move_to_board_check():
+        current_pose: Pose = move_group.get_current_pose().pose
+        return (abs(current_pose.position.x - X_TARGET) < 0.02
+        and abs(current_pose.position.y - Y_TARGET) < 0.02
+        and abs(current_pose.position.z - Z_TARGET) < 0.02)
+    move_robot_with_verification(move_group, move_to_board, move_to_board_check)
+
+    # print("Settling...")
+    # time.sleep(10) # to allow robot to settle
+    # move_robot_with_verification(move_group, move_to_board, move_to_board_check)
 
     attach_detach_helper.detach_token(token_name)
     ee.go([0.5])

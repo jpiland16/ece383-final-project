@@ -140,7 +140,7 @@ def drop_token_in_column(oc: ObjectController, color: TokenColor, column: int):
         raise ValueError(f"Invalid column id: {column}")
     
     # x_pos = [0.518, 0.551, 0.585, 0.620, 0.655, 0.690, 0.725][column - 1]
-    x_pos = 0.268 + 0.0345 * (column - 1)
+    x_pos = 0.284 + 0.0345 * (column - 1)
 
     oc.spawn_token_at_location(color, x_pos, -0.298, 0.5)
 

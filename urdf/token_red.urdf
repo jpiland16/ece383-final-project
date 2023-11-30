@@ -3,7 +3,7 @@
     <!-- token -->
     <link name="token_link">
         <visual>
-            <origin xyz="0 0 0" rpy="1.57 0 0" />
+            <origin xyz="-0.016 0.016 0" rpy="1.57 0 0" />
             <geometry>
                 <mesh filename="package://ece383-final-project/meshes/visual/token.stl" scale="0.001 0.001 0.001"/>
             </geometry>
@@ -13,7 +13,7 @@
         </visual>
 
         <collision>
-            <origin xyz="0 0 0" rpy="1.57 0 0" />
+            <origin xyz="-0.016 0.016 0" rpy="1.57 0 0" />
             <geometry>
                 <mesh filename="package://ece383-final-project/meshes/visual/token.stl" scale="0.001 0.001 0.001"/>
             </geometry>
