@@ -120,7 +120,7 @@ def main():
         return abs(current_pose.position.z - Z_TARGET) < 0.02
     move_robot_with_verification(move_group, lift_token, lift_token_check)
 
-    robot.go(x = 0.29, y = -0.302, z = 0.55)
+    robot.go(x = 0.29, y = -0.302, z = 0.6)
 
     attach_detach_helper.detach_token(token_name)
     ee.go([0.5])
