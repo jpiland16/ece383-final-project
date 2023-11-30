@@ -203,9 +203,9 @@ def run_program(robot: MovableRobot):
 
             time.sleep(2)
 
-    align_token(0.284, -0.298)
+    align_token(0.284, -0.2978)
     robot.go(z = 0.52)
-    align_token(0.284, -0.298)
+    align_token(0.284, -0.2978)
 
     print("Ready to drop token! Its current pose is")
     print(object_controller.get_model_state(token_name).pose)
