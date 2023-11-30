@@ -115,9 +115,9 @@ class ObjectController:
         )
         return self._spawn_token(color, pose)
     
-    def spawn_holder_at_location(self, x: float, y: float):
+    def spawn_holder_at_location(self, x: float, y: float, z: float = 0):
         pose = Pose(
-            Point(x, y, 0),
+            Point(x, y, z),
             Quaternion(-0.5, 0.5, 0.5, 0.5) # pitch and yaw by pi/2 (both)
         )
         return self._spawn_holder(pose)

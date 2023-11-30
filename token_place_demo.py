@@ -1,8 +1,12 @@
+#!/usr/bin/python3
 from object_control import ObjectController, TokenColor
 from attacher import AttachDetachHelper
 from demo_ee import MovableRobot, all_close
 import time
 from typing import List, Callable
+import rospy
+from gazebo_msgs.srv import SetModelConfiguration, SetModelConfigurationRequest
+from std_srvs.srv import Empty
 
 from geometry_msgs.msg import Pose
 
@@ -44,14 +48,38 @@ def move_robot_with_verification(move_group, move_fn: Callable[[], None], final_
         return robot_has_moved(starting_joint_values, current_joint_values)
     move_with_verification(move_fn, check_motion, final_check_function)
 
+def stabilize_initial_state():
+
+    rospy.ServiceProxy("/gazebo/pause_physics", Empty)()
+
+    model_config_service = rospy.ServiceProxy("/gazebo/set_model_configuration", SetModelConfiguration)
+
+    req = SetModelConfigurationRequest(
+        "robot",
+        "ur5e_robot",
+        ["elbow_joint", "finger_joint", "shoulder_pan_joint", "shoulder_lift_joint", "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"],
+        [-0.7943, 0.0226, 0.4974, 0.0035, 0.0883, 0.0318, -0.0566]
+    )
+
+    res = model_config_service(req)
+    print(res)
+
+    rospy.ServiceProxy("/gazebo/unpause_physics", Empty)()
+
 def main():
+
+    # stabilize_initial_state()
+
     attach_detach_helper = AttachDetachHelper()
     object_controller = ObjectController()
 
-    object_controller.delete_all_free_models()
-    token_name, res = object_controller.spawn_token_at_location(TokenColor.RED, 0.6, 0.007, 0.1)
+    while True:
+        try:
+            robot = MovableRobot()
+            break
+        except RuntimeError:
+            print("Retrying connection...")
 
-    robot = MovableRobot()
     move_group = robot.instance.move_group
     ee = robot.instance.ee_group
     ee.go([0])
@@ -68,9 +96,16 @@ def main():
     
     print("Robot is ready!")
 
+
+    # object_controller.delete_all_free_models()
+    token_name, res = object_controller.spawn_token_at_location(TokenColor.RED, 0.6, 0.007, 0.1)
+
+    print("Spawned token!")
+
     robot.go(x = 0.62, y = 0.007, z = 0.5, qx = 0, qy = -1, qz = 0, qw = 0)
 
     robot.go(z = 0.232)
+    # robot.go(z = 0.154)
 
     ee.go([0.62])
 
@@ -85,10 +120,14 @@ def main():
         return abs(current_pose.position.z - Z_TARGET) < 0.02
     move_robot_with_verification(move_group, lift_token, lift_token_check)
 
-    robot.go(x = 0.29, y = -0.3, z = 0.55)
+    robot.go(x = 0.29, y = -0.302, z = 0.55)
 
     attach_detach_helper.detach_token(token_name)
     ee.go([0.5])
+
+    input("Press ENTER when token has fallen")
+    attach_detach_helper.link_board_to_token(token_name)
+    print("Token affixed to board. Physics should be relatively fast still.")
 
 if __name__ == "__main__":
     main()

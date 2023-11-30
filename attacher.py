@@ -7,7 +7,7 @@ class AttachDetachHelper():
         self._detach_service = rospy.ServiceProxy("/link_attacher_node/detach", Attach)
 
     def attach_token(self, token_name: str):
-        self._attach_service(
+        return self._attach_service(
             "robot",
             "wrist_3_link",
             token_name,
@@ -15,9 +15,17 @@ class AttachDetachHelper():
         )
 
     def detach_token(self, token_name: str):
-        self._detach_service(
+        return self._detach_service(
             "robot",
             "wrist_3_link",
+            token_name,
+            "token_link"
+        )
+
+    def link_board_to_token(self, token_name: str):
+        return self._attach_service(
+            "robot",
+            "board_link",
             token_name,
             "token_link"
         )
