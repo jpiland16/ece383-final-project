@@ -8,8 +8,10 @@ def main():
     robot = MovableRobot()
 
     def drop_token_callback():
+        # Return True if token should be played again after being dropped on the ground by robot
         pass
     def lodge_token_callback():
+        # Return True if token should be played again if it gets stuck in the board by robot
         pass
 
     for column in range(7):
