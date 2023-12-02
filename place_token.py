@@ -153,6 +153,7 @@ def robot_play_token_in_column(robot: MovableRobot, column: int, expected_height
             return (
                 abs(position.x - x_target) < 0.0006 and
                 abs(position.y - y_target) < 0.0006 and
+                # abs(position.z - z_target) < 0.008  and
                 abs(orientation.x - np.sqrt(2)/2) < 0.006 and
                 abs(orientation.y -            0) < 0.006 and
                 abs(orientation.z -            0) < 0.006 and
@@ -200,7 +201,8 @@ def robot_play_token_in_column(robot: MovableRobot, column: int, expected_height
 
             robot.go(
                 x = x_target + (robot_position.x - token_position.x),
-                y = y_target + (robot_position.y - token_position.y)
+                y = y_target + (robot_position.y - token_position.y),
+                # z = z_target + (robot_position.z - token_position.z)
             )
 
             time.sleep(2)
@@ -224,7 +226,11 @@ def robot_play_token_in_column(robot: MovableRobot, column: int, expected_height
     robot.go(X_TARGET, Y_TARGET, Z_TARGET) # needed to update parameters in this class, the robot should already be at this position
 
     align_token(X_TARGET, Y_TARGET)
-    robot.go(z = 0.52)
+    token_position_z = object_controller.get_model_state(token_name).pose.position.z
+    # Don't hit the board with the token if it is hanging lower than usual!
+    # My guess is that this occurs due to the physics slowing down with more tokens, then the token tilting less in its holder... idk...
+    token_droop = 0.3808 - token_position_z
+    robot.go(z = 0.52 + token_droop)
     align_token(X_TARGET, Y_TARGET)
 
     print("Ready to drop token! Its current pose is")
@@ -251,7 +257,10 @@ def robot_play_token_in_column(robot: MovableRobot, column: int, expected_height
         print("TOKEN DROPPED! Waiting for callback decision to retry...")
         if drop_token_callback():
             # if callback comes back True, then try again
-            robot_play_token_in_column(robot, column, token_color, expected_height, drop_token_callback, lodge_token_callback)
+            attach_detach_helper.link_board_to_token(token_name)
+            robot_play_token_in_column(robot, column, expected_height, token_color, drop_token_callback, lodge_token_callback)
+        else:
+            attach_detach_helper.link_board_to_token(token_name)
     else:
         # check for expected height
         expected = 0.173 + 0.032 * (expected_height - 1)
@@ -262,11 +271,12 @@ def robot_play_token_in_column(robot: MovableRobot, column: int, expected_height
             print("TOKEN LODGED IN BOARD! Waiting for callback decision to retry...")
             if lodge_token_callback():
                 # if callback comes back True, then try again
-                robot_play_token_in_column(robot, column, token_color, expected_height, drop_token_callback, lodge_token_callback)
+                robot_play_token_in_column(robot, column, expected_height, token_color, drop_token_callback, lodge_token_callback)
+            attach_detach_helper.link_board_to_token(token_name)
         else:
             print("Token placement SUCCESS.")
+            attach_detach_helper.link_board_to_token(token_name)
 
-    attach_detach_helper.link_board_to_token(token_name)
     print("Token affixed to board. Physics should be relatively fast still.")
 
 
