@@ -9,20 +9,23 @@ def main():
 
     def drop_token_callback():
         # Return True if token should be played again after being dropped on the ground by robot
-        pass
+        print("Dropped token! Retrying...")
+        return True
     def lodge_token_callback():
         # Return True if token should be played again if it gets stuck in the board by robot
-        pass
+        print("A token got stuck or is in the wrong place... ignoring...")
+        return False
 
-    for column in range(7):
-        robot_play_token_in_column(
-            robot,
-            column + 1,
-            2,
-            list(TokenColor)[column % 2], # alternate colors,
-            drop_token_callback,
-            lodge_token_callback
-        )
+    for row in range(6):
+        for column in range(7):
+            robot_play_token_in_column(
+                robot,
+                column + 1,
+                row + 1,
+                list(TokenColor)[column % 2], # alternate colors,
+                drop_token_callback,
+                lodge_token_callback
+            )
 
 if __name__ == "__main__":
     main()

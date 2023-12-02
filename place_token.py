@@ -8,7 +8,9 @@ import rospy
 from gazebo_msgs.srv import SetModelConfiguration, SetModelConfigurationRequest
 from std_srvs.srv import Empty
 
-from geometry_msgs.msg import Pose, Quaternion
+from optional_print import optional_print as print
+
+from geometry_msgs.msg import Pose, Quaternion, Point
 import tf.transformations as tr
 import numpy as np
 
@@ -159,7 +161,7 @@ def robot_play_token_in_column(robot: MovableRobot, column: int, expected_height
         
         counter = 0
         
-        while not token_is_in_place():
+        while not token_is_in_place() and counter < 30: # Spend at most one minute doing this
             counter += 1
             
             print(f"Token is not aligned to target. Moving... ({counter})")
@@ -203,8 +205,23 @@ def robot_play_token_in_column(robot: MovableRobot, column: int, expected_height
 
             time.sleep(2)
 
-    X_TARGET =  0.204  + 0.03452 * (column - 1)
+    X_TARGET =  0.204  + 0.0348 * (column - 1)
     Y_TARGET = -0.2976
+
+    def move_above_board():
+        current_pose = move_group.get_current_pose().pose
+        pose_above_board = Pose(
+            Point(X_TARGET, Y_TARGET, Z_TARGET),
+            Quaternion(0, -1, 0, 0)
+        )
+        (plan, fraction) = move_group.compute_cartesian_path(
+            [current_pose, pose_above_board], 0.01, 0.0  # waypoints to follow  # eef_step
+        )  # jump_threshold
+        move_group.execute(plan)
+
+    move_above_board()
+
+    robot.go(X_TARGET, Y_TARGET, Z_TARGET) # needed to update parameters in this class, the robot should already be at this position
 
     align_token(X_TARGET, Y_TARGET)
     robot.go(z = 0.52)

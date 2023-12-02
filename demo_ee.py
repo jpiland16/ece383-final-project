@@ -55,6 +55,67 @@ from math import dist, fabs, cos
 from moveit_commander.conversions import pose_to_list
 from enum import Enum
 
+always_print = print
+from optional_print import optional_print as print
+
+def disable_logging(start_with: str):
+
+    # Uncomment the return statement below to ENABLE logging
+    # return
+
+    import rosnode
+    import rosservice
+
+    def get_node_names():
+        """
+        Gets a list of available services via a ros service call.
+        :returns: a list of all nodes that provide the set_logger_level service, ''list(str)''
+        """
+        set_logger_level_nodes = []
+        nodes = rosnode.get_node_names()
+        for name in sorted(nodes):
+            for service in rosservice.get_service_list(name):
+                if service == name + '/set_logger_level':
+                    set_logger_level_nodes.append(name)
+        return set_logger_level_nodes
+    
+    def send_logger_change_message(node, logger, level):
+        """
+        Sends a logger level change request to 'node'.
+        :param node: name of the node to chaange, ''str''
+        :param logger: name of the logger to change, ''str''
+        :param level: name of the level to change, ''str''
+        :returns: True if the response is valid, ''bool''
+        :returns: False if the request raises an exception or would not change the cached state, ''bool''
+        """
+        servicename = node + '/set_logger_level'
+
+        service = rosservice.get_service_class_by_name(servicename)
+        request = service._request_class()
+        setattr(request, 'logger', logger)
+        setattr(request, 'level', level)
+        proxy = rospy.ServiceProxy(str(servicename), service)
+        print(request)
+        try:
+            proxy(request)
+        except Exception as e:
+            always_print("ERROR", e)
+            return False
+        return True
+    
+    node_names = get_node_names()
+    print(node_names)
+
+    node_to_update = ""
+
+    for node_name in node_names:
+        if node_name.startswith(start_with):
+            node_to_update = node_name
+
+    if node_to_update != "":
+        res = send_logger_change_message(node_to_update, "ros", "error")
+        always_print("Disable logging for node", node_to_update)
+
 
 class ECE383Controller(object):
     """MoveGroupPythonInterfaceTutorial"""
@@ -77,6 +138,7 @@ class ECE383Controller(object):
         ## Instantiate a `RobotCommander`_ object. Provides information such as the robot's
         ## kinematic model and the robot's current joint states
         robot = moveit_commander.RobotCommander()
+        disable_logging("/move_group_commander")
 
         ## Instantiate a `MoveGroupCommander`_ object.  This object is an interface
         ## to a planning group (group of joints).  In this tutorial the group is the primary
@@ -349,3 +411,7 @@ class MovableRobot():
 def test():
     ee = MovableRobot().instance.ee_group
     ee.go([0.5])
+
+
+if __name__ == "__main__":
+    disable_logging()
