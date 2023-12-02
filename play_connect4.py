@@ -299,6 +299,11 @@ def main():
             
         play_move()
 
+        # TODO: this is where we could insert a CV approach.
+        # Instead of telling the robot what move the user typed using the line
+        # below, we could automatically detect this using the camera
+        # and update the board state according to the camera data.
+
         board.update_with_char(str(move))
 
     def get_robot_move():
