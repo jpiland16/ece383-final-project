@@ -46,7 +46,7 @@ class ObjectController:
             raise JointStatesWrongLengthError(
                 f"Expected 7 joint values, got {len(self._joint_states)}")
         
-        position = self._joint_states[:] # shallow copy
+        position = self._joint_states[:] # deep copy (drop reference)
 
         position = [position[0]] + position[2:] # drop finger joint (index 1)
 

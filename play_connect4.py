@@ -9,6 +9,8 @@ from enum import Enum
 from typing import List, Optional
 import os
 from c4solver import Connect4Solver
+from image_processing import VideoCamera, get_column_played
+from math import floor
 
 def get_integer(msg: str, min: int=None, max: int=None) -> int:
     while True:
@@ -245,6 +247,7 @@ def main():
     attach_detach_helper = AttachDetachHelper()
     solver = Connect4Solver()
     board = Board()
+    video_camera = VideoCamera()
 
     os.system("clear")
     fun_type("Welcome to the Connect4 AI!", delay=2)
@@ -283,9 +286,16 @@ def main():
 
     def get_user_move():
         def move_is_valid(m: int):
-            return board._column_heights[m - 1] < 7
+            return board._column_heights[m - 1] < 6 
         move = -1
         print()
+        solution = solver.get_solution(board.state)
+        if solution.value > 0:
+            fun_type(f" >>> you can (theoretically) win in {floor((45 - len(board.state))/2) - solution.value} move(s).")
+        if solution.value == 0:
+            fun_type(f" >>> you can (theoretically) force a draw.")
+        if solution.value < 0:
+            fun_type(f" >>> you will be defeated in {floor((44 - len(board.state))/2) + solution.value} move(s).")
         move = get_integer("Your turn! Enter desired column (1-7)", 1, 7)
         while not move_is_valid(move):
             fun_type("That column is full! Try again.")
@@ -296,21 +306,34 @@ def main():
             time.sleep(0.5)
             attach_detach_helper.wait_for_token_to_fall(token_name, board._column_heights[move - 1] + 1, object_controller,
                                                         drop_token_callback, lodge_token_callback, play_move)
-            
+        
+        previous_snap = video_camera.get_snapshot()
         play_move()
+        time.sleep(1) # wait to take picture
+        current_snap = video_camera.get_snapshot()
+        camera_determined_move = get_column_played(board._column_heights, previous_snap, current_snap)
+        fun_type(f"Camera processing complete - move in column {camera_determined_move} detected")
 
-        # TODO: this is where we could insert a CV approach.
-        # Instead of telling the robot what move the user typed using the line
-        # below, we could automatically detect this using the camera
-        # and update the board state according to the camera data.
+        if camera_determined_move != move:
+            fun_type("My camera system is not working so well.")
+            fun_type(f"It thought you played move {camera_determined_move}, but I know you actually played {move}.")
+            fun_type("I'll cheat a bit and pretend I used my camera correctly.")
+            # V--- HACK in case camera is wrong
+            camera_determined_move = move
 
-        board.update_with_char(str(move))
+        board.update_with_char(str(camera_determined_move))
 
     def get_robot_move():
         nonlocal alerted_robot_win
         print()
         fun_type("The robot is making its move, please wait...")
         solution = solver.get_solution(board.state)
+        if solution.value > 0:
+            fun_type(f" >>> the robot will win in {floor((45 - len(board.state))/2) - solution.value} move(s).")
+        if solution.value == 0:
+            fun_type(f" >>> the robot can (theoretically) be forced into a draw.")
+        if solution.value < 0:
+            fun_type(f" >>> the robot can (theoretically) be defeated in {floor((44 - len(board.state))/2) + solution.value} move(s).")
         move = solution.best_move
         value = solution.value
         if value > 0 and not alerted_robot_win:
