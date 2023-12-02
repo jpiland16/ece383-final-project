@@ -8,6 +8,7 @@ This code shows the live video from a ROS/gazebo camera.
 import rospy
 from sensor_msgs.msg import Image
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 from matplotlib.animation import FuncAnimation
 from datetime import datetime
 import numpy as np
@@ -32,15 +33,21 @@ def create_matplotlib_animation():
 
     fig, ax = plt.subplots()
     im = plt.imshow(blank_image)
-    title = ax.text(400, 400, last_callback_str)
+
+    rect = patches.Rectangle((170, 720), 460, 35, edgecolor='none', facecolor='white', alpha=0.5)
+
+    # Add the patch to the Axes
+    ax.add_patch(rect)
+
+    title = ax.text(175, 750, last_callback_str)
 
     def init():
-        return im, title
+        return im, title, rect
 
     def update(frame):
         im.set_data(current_image)
         title.set_text(last_callback_str)
-        return im, title
+        return im, title, rect
 
     ani = FuncAnimation(fig, update, frames=None,
                         init_func=init, blit=True)

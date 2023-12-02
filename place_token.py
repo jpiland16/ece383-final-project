@@ -241,41 +241,10 @@ def robot_play_token_in_column(robot: MovableRobot, column: int, expected_height
     ee.go([0.5])
     robot.go(z = 0.6)
 
-    wait_seconds = 20   # if token appears lodged
+    def redo():
+        robot_play_token_in_column(robot, column, expected_height, token_color, drop_token_callback, lodge_token_callback)
 
-    while object_controller.get_model_state(token_name).pose.position.z > 0.349:
-        print(f"Token is still above the board. Waiting {wait_seconds} second(s) for it to fall...", end="", flush=True)
-        time.sleep(1)
-        wait_seconds -= 1
-        if wait_seconds == 0:
-            break 
-
-    z_pos = object_controller.get_model_state(token_name).pose.position.z
-
-    if z_pos < 0.157:
-        # below board
-        print("TOKEN DROPPED! Waiting for callback decision to retry...")
-        if drop_token_callback():
-            # if callback comes back True, then try again
-            attach_detach_helper.link_board_to_token(token_name)
-            robot_play_token_in_column(robot, column, expected_height, token_color, drop_token_callback, lodge_token_callback)
-        else:
-            attach_detach_helper.link_board_to_token(token_name)
-    else:
-        # check for expected height
-        expected = 0.173 + 0.032 * (expected_height - 1)
-        min_expected = expected - 0.008   # 8 mm = 1/2 of radius of token
-        max_expected = expected + 0.008
-        if not (min_expected < z_pos < max_expected):
-            # lodged token
-            print("TOKEN LODGED IN BOARD! Waiting for callback decision to retry...")
-            if lodge_token_callback():
-                # if callback comes back True, then try again
-                robot_play_token_in_column(robot, column, expected_height, token_color, drop_token_callback, lodge_token_callback)
-            attach_detach_helper.link_board_to_token(token_name)
-        else:
-            print("Token placement SUCCESS.")
-            attach_detach_helper.link_board_to_token(token_name)
+    attach_detach_helper.wait_for_token_to_fall(token_name, expected_height, object_controller, drop_token_callback, lodge_token_callback, redo)
 
     print("Token affixed to board. Physics should be relatively fast still.")
 
