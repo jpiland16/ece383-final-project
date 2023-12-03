@@ -2,6 +2,7 @@
 import rospy
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
+import cv2
 
 import matplotlib.pyplot as plt
 
@@ -25,6 +26,8 @@ def callback(msg: Image):
     # print(msg.height, msg.width)
     print("Image saved at", now)
     image = bridge.imgmsg_to_cv2(msg, "rgb8")
+    image_cv2 = bridge.imgmsg_to_cv2(msg, "bgr8")
+    cv2.imwrite("test2.png", image_cv2)
     plt.imshow(image)
     plt.savefig(f"test.png")
 

@@ -1,5 +1,6 @@
 #!/usr/bin/python3
-import os, sys
+import os, sys, time
+from check_ros_running import check_ros_running
 
 print("STARTING FINAL PROJECT...")
 
@@ -7,6 +8,12 @@ commands = [
     "roslaunch ece383-final-project ur5e_bringup.launch",
     "sleep 10 ; roslaunch ece383-final-project moveit_planning_execution.launch sim:=true"
 ]
+
+run_count = 0
+while check_ros_running():
+    run_count += 1
+    print(f"ROS is still running! Waiting for it to close... ({run_count})")
+    time.sleep(1)
 
 if len(sys.argv) == 1:
     # try to launch all commands
